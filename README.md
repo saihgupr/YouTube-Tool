@@ -108,7 +108,7 @@ Build and run in Xcode (requires API key in Settings).
 - Check your API usage in Google Cloud Console
 
 **"Unable to find channel - please check the channel name"**
-- Double check spelling or try using channel ID instead
+- Double-check spelling or try using channel ID instead
 - Ensure the channel exists and is public
 - Try searching for the channel on YouTube first
 
