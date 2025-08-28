@@ -138,6 +138,7 @@ struct ContentView: View {
                                         }
                                         .padding(.horizontal, 20)
                                         .padding(.vertical, 16)
+                                        .frame(maxWidth: .infinity)
                                         .background(Color(hex: "#007AFF"))
                                         .foregroundColor(.white)
                                         .cornerRadius(12)

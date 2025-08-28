@@ -326,7 +326,6 @@ class YouTubeViewModel: ObservableObject {
         // Clear message after 3 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             Task { @MainActor in
-                self.message = nil
             }
         }
     }
