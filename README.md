@@ -1,6 +1,4 @@
-# YouTube Playlist Creator
-
-<img src="https://i.imgur.com/ceUFUjO.png" alt="YouTube Playlist Creator Icon" width="3%" height="3%">
+# <img src="https://i.imgur.com/ceUFUjO.png" alt="YouTube Playlist Creator Icon" width="3%" height="3%"> YouTube Playlist Creator
 
 A native iOS/macOS app for extracting YouTube video IDs from channels and creating custom playlists with advanced filtering options.
 
