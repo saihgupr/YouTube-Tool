@@ -11,7 +11,7 @@ A native iOS/macOS app for extracting YouTube video IDs from channels and creati
 </div>
 
 <div align="center">
-  <img src="https://i.imgur.com/TrUcBqT.png" width="300" alt="Main Interface">
+  <img src="https://i.imgur.com/TrUcBqT.png" width="400" alt="Main Interface">
   <img src="https://i.imgur.com/dVGvs5t.png" width="400" alt="Settings View">
 </div>
 
