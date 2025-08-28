@@ -37,56 +37,123 @@ extension Color {
     }
 }
 
+// Modifiers for iPad-specific safe area handling
+struct SafeAreaTopIgnorer: ViewModifier {
+    func body(content: Content) -> some View {
+        content.ignoresSafeArea(.container, edges: .top)
+    }
+}
+
+struct EmptyModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+    }
+}
+
 struct ContentView: View {
     @EnvironmentObject private var config: Config
-    @StateObject private var viewModel = YouTubeViewModel(config: Config())
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
-        ZStack {
-            // Dark background
-            Color(hex: "#000000")
-                .ignoresSafeArea()
+        Group {
+            if horizontalSizeClass == .regular {
+                // iPad: Ultra-minimal layout - no containers at all
+                ScrollViewReader { scrollProxy in
+                    YouTubePlaylistCreatorView(scrollProxy: scrollProxy)
+                        .environmentObject(config)
+                        .background(Color(hex: "#000000"))
+                        .edgesIgnoringSafeArea(.all)
+                }
+            } else {
+                // iPhone: Match iPad layout without NavigationView
+                ScrollViewReader { scrollProxy in
+                    YouTubePlaylistCreatorView(scrollProxy: scrollProxy)
+                        .environmentObject(config)
+                        .background(Color(hex: "#000000"))
+                        .edgesIgnoringSafeArea(.all)
+                }
+            }
+        }
+    }
+}
 
-            NavigationView {
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Header
-                        VStack(spacing: 16) {
-                            // Settings button
-                            HStack {
-                                Spacer()
-                                                        NavigationLink(destination: SettingsView()) {
-                            Image(systemName: "gear")
-                                .font(.system(size: 18))
-                                .foregroundColor(.white)
-                        }
-                            }
+struct YouTubePlaylistCreatorView: View {
+    @EnvironmentObject private var config: Config
+    let scrollProxy: ScrollViewProxy?
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-                            // Title container
-                            VStack(spacing: 8) {
-                                // Title badge
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white.opacity(0.05))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                        )
+    @StateObject private var viewModel: YouTubeViewModel
+    @State private var showSettings = false // For iPad sheet
 
-                                    Text("YouTube Playlist Creator")
-                                        .font(.system(size: 24, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 20)
-                                        .padding(.vertical, 12)
+    init(scrollProxy: ScrollViewProxy?) {
+        self.scrollProxy = scrollProxy
+        _viewModel = StateObject(wrappedValue: YouTubeViewModel(config: Config()))
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                        // Header - Minimal for iPad, full for iPhone
+                        VStack(spacing: horizontalSizeClass == .regular ? 8 : 16) {
+                            #if targetEnvironment(macCatalyst)
+                            // Add extra top padding for Mac Catalyst
+                            Spacer()
+                                .frame(height: 5)
+                            #endif
+                            if horizontalSizeClass == .regular {
+                                // iPad: Show title and settings button in header
+                                VStack(alignment: .center, spacing: 8) {
+                                    HStack {
+                                        Spacer()
+                                        Button(action: {
+                                            showSettings = true
+                                        }) {
+                                            Image(systemName: "gear")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+
+                                    VStack(spacing: 4) {
+                                        Text("YouTube Playlist Creator")
+                                            .font(.system(size: 28, weight: .semibold))
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                        Text("Extract video IDs from YouTube channels")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(Color(hex: "#8E8E93"))
+                                            .multilineTextAlignment(.center)
+                                    }
                                 }
+                            } else {
+                                // iPhone: Match iPad layout with settings button in top right
+                                VStack(alignment: .center, spacing: 8) {
+                                    HStack {
+                                        Spacer()
+                                        Button(action: {
+                                            showSettings = true
+                                        }) {
+                                            Image(systemName: "gear")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.white)
+                                        }
+                                    }
 
-                                Text("Extract video IDs from YouTube channels")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(Color(hex: "#8E8E93"))
+                                    VStack(spacing: 4) {
+                                        Text("YouTube Playlist Creator")
+                                            .font(.system(size: 24, weight: .semibold))
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                        Text("Extract video IDs from YouTube channels")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(Color(hex: "#8E8E93"))
+                                            .multilineTextAlignment(.center)
+                                    }
+                                }
                             }
                         }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 20)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 36) // Same padding for both iPhone and iPad
                         .padding(.bottom, 24)
 
                         // Main content
@@ -171,22 +238,7 @@ struct ContentView: View {
                                             .font(.system(size: 15, weight: .medium))
                                             .foregroundColor(Color(hex: "#8E8E93"))
 
-                                        Menu {
-                                            ForEach(VideoOrder.allCases, id: \.self) { order in
-                                                Button(action: {
-                                                    viewModel.selectedOrder = order
-                                                }) {
-                                                    Text(order.displayName)
-                                                }
-                                            }
-                                        } label: {
-                                            HStack {
-                                                Text(viewModel.selectedOrder.displayName)
-                                                    .foregroundColor(.white)
-                                                Spacer()
-                                                Image(systemName: "chevron.down")
-                                                    .foregroundColor(Color(hex: "#8E8E93"))
-                                            }
+                                        CustomDropdownView(selectedOrder: $viewModel.selectedOrder)
                                             .padding(16)
                                             .background(Color(hex: "#2C2C2E"))
                                             .cornerRadius(12)
@@ -194,7 +246,6 @@ struct ContentView: View {
                                                 RoundedRectangle(cornerRadius: 12)
                                                     .stroke(Color.white.opacity(0.1), lineWidth: 1)
                                             )
-                                        }
                                         .disabled(viewModel.isLoading)
                                     }
 
@@ -341,15 +392,31 @@ struct ContentView: View {
                                     )
                                     .frame(height: 80)
                                 }
+                                .id("videoIdsSection")
                             }
                         }
                         .padding(.horizontal, 20)
                     }
                     .padding(.bottom, 20)
                 }
-                .background(Color(hex: "#000000"))
-            }
-            .navigationViewStyle(.stack)
+                                .background(Color(hex: "#000000"))
+                .onAppear {
+                    // Set scroll callback for auto-scroll after video fetch
+                    viewModel.setScrollCallback { [scrollProxy] in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            if let scrollProxy = scrollProxy {
+                                withAnimation {
+                                    scrollProxy.scrollTo("videoIdsSection", anchor: .bottom)
+                                }
+                            }
+                        }
+                    }
+                }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(dismissAction: {
+                showSettings = false
+            })
+            .environmentObject(config)
         }
     }
 }
@@ -423,6 +490,93 @@ struct ButtonStyleModifier: ViewModifier {
             content.buttonStyle(.borderedProminent)
         } else {
             content.buttonStyle(DefaultButtonStyle())
+        }
+    }
+}
+
+// MARK: - Custom Dropdown for VideoOrder
+struct CustomDropdownView: View {
+    @Binding var selectedOrder: VideoOrder
+    @State private var isExpanded = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Main button - entire area is clickable
+            Button(action: {
+                #if targetEnvironment(macCatalyst)
+                // For Mac Catalyst, use immediate toggle without animation
+                isExpanded.toggle()
+                #else
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+                #endif
+            }) {
+                HStack {
+                    Text(selectedOrder.displayName)
+                        .foregroundColor(.white)
+                        .font(.system(size: 16))
+                    Spacer()
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .foregroundColor(Color(hex: "#8E8E93"))
+                        .font(.system(size: 12))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Dropdown options
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(VideoOrder.sortedCases, id: \.self) { order in
+                        Button(action: {
+                            selectedOrder = order
+                            #if targetEnvironment(macCatalyst)
+                            // For Mac Catalyst, use immediate close without animation
+                            isExpanded = false
+                            #else
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isExpanded = false
+                            }
+                            #endif
+                        }) {
+                            HStack {
+                                Text(order.displayName)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16))
+                                Spacer()
+                                if order == selectedOrder {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(Color(hex: "#007AFF"))
+                                        .font(.system(size: 14))
+                                }
+                            }
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        if order != VideoOrder.sortedCases.last {
+                            Divider()
+                                .background(Color.white.opacity(0.1))
+                                .padding(.leading, 16)
+                        }
+                    }
+                }
+                .background(Color(hex: "#1C1C1E"))
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .padding(.top, 8)
+                #if !targetEnvironment(macCatalyst)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+                #endif
+            }
         }
     }
 }

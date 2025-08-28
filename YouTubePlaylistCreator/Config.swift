@@ -10,7 +10,6 @@ import SwiftUI
 
 class Config: ObservableObject {
     @AppStorage("youtubeApiKey") private var storedApiKey = ""
-    @AppStorage("maxVideosLimit") private var storedMaxVideos = 50
 
     var apiKey: String {
         get {
@@ -22,8 +21,7 @@ class Config: ObservableObject {
     }
 
     var maxVideosLimit: Int {
-        get { storedMaxVideos }
-        set { storedMaxVideos = newValue }
+        return 50 // Fixed default value
     }
 
     var hasCustomApiKey: Bool {

@@ -34,12 +34,16 @@ enum VideoOrder: String, CaseIterable {
         switch self {
         case .newestToOldest: return "Newest to Oldest"
         case .oldestToNewest: return "Oldest to Newest"
-        case .random: return "Random"
         case .yearInTitleAsc: return "Year in Title (Oldest to Newest)"
         case .yearInTitleDesc: return "Year in Title (Newest to Oldest)"
         case .durationDesc: return "Longest to Shortest"
         case .durationAsc: return "Shortest to Longest"
+        case .random: return "Random"
         }
+    }
+    
+    static var sortedCases: [VideoOrder] {
+        return allCases.filter { $0 != .random } + [.random]
     }
 }
 
@@ -68,6 +72,7 @@ class YouTubeViewModel: ObservableObject {
     // MARK: - Private Properties
     private let config: Config
     private var cancellables = Set<AnyCancellable>()
+    private var scrollCallback: (() -> Void)?
 
     init(config: Config) {
         self.config = config
@@ -86,6 +91,12 @@ class YouTubeViewModel: ObservableObject {
     }
 
     // MARK: - Public Methods
+    func setScrollCallback(_ callback: @escaping () -> Void) {
+        // Store the callback in a way that can be called later
+        // We'll use a simple property for this
+        scrollCallback = callback
+    }
+
     func searchChannel() async {
         guard !channelName.isEmpty else {
             await MainActor.run {
@@ -123,7 +134,13 @@ class YouTubeViewModel: ObservableObject {
             }
         } catch {
             await MainActor.run {
-                showMessage("Error searching for channel: \(error.localizedDescription)", type: .error)
+                if error.localizedDescription.contains("missing") || error.localizedDescription.contains("invalid") {
+                    showMessage("Please check your API key - it might be incorrect or expired", type: .info)
+                } else if error.localizedDescription.contains("quota") {
+                    showMessage("YouTube API quota exceeded - try again later", type: .info)
+                } else {
+                    showMessage("Unable to find channel - please check the channel name", type: .info)
+                }
             }
         }
     }
@@ -227,6 +244,8 @@ class YouTubeViewModel: ObservableObject {
                 videos = finalVideos
                 videoIds = finalVideos.map { $0.id }
                 showMessage("Found \(finalVideos.count) videos")
+                // Scroll to video IDs section after successful fetch
+                scrollCallback?()
             }
 
         } catch {
@@ -245,8 +264,12 @@ class YouTubeViewModel: ObservableObject {
 
         let iosUrl = "https://www.youtube.com/watch_videos?video_ids=\(videoIds.joined(separator: ","))"
 
-        #if canImport(AppKit)
-        // On Mac, copy to clipboard
+        #if targetEnvironment(macCatalyst)
+        // On Mac Catalyst, copy to clipboard using UIKit
+        UIPasteboard.general.string = iosUrl
+        showMessage("URL copied to clipboard")
+        #elseif canImport(AppKit) && !targetEnvironment(macCatalyst)
+        // On native Mac, copy to clipboard
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(iosUrl, forType: .string)
         showMessage("URL copied to clipboard")
@@ -268,8 +291,22 @@ class YouTubeViewModel: ObservableObject {
 
         let playlistUrl = "https://www.youtube.com/watch_videos?video_ids=\(videoIds.joined(separator: ","))"
 
-        #if canImport(AppKit)
-        // On Mac, open in default browser
+        #if targetEnvironment(macCatalyst)
+        // On Mac Catalyst, open in default app using UIKit
+        if let url = URL(string: playlistUrl) {
+            Task {
+                let success = await UIApplication.shared.open(url)
+                if success {
+                    showMessage("Opened in browser")
+                } else {
+                    showMessage("Unable to open URL", type: .error)
+                }
+            }
+        } else {
+            showMessage("Unable to open URL", type: .error)
+        }
+        #elseif canImport(AppKit) && !targetEnvironment(macCatalyst)
+        // On native Mac, open in default browser
         if let url = URL(string: playlistUrl) {
             NSWorkspace.shared.open(url)
             showMessage("Opened in browser")
@@ -306,14 +343,20 @@ class YouTubeViewModel: ObservableObject {
         let playlistUrl = "https://www.youtube.com/watch_videos?video_ids=\(videoIds.joined(separator: ","))"
 
         #if targetEnvironment(macCatalyst)
-        // On Mac, copy to clipboard for now
+        // On Mac Catalyst, copy to clipboard using UIKit
+        UIPasteboard.general.string = playlistUrl
+        showMessage("Playlist URL copied to clipboard")
+        #elseif canImport(AppKit) && !targetEnvironment(macCatalyst)
+        // On native Mac, copy to clipboard
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(playlistUrl, forType: .string)
         showMessage("Playlist URL copied to clipboard")
-        #else
+        #elseif canImport(UIKit)
         // On iOS, show share sheet
         // This would be implemented in the view using UIActivityViewController
         showMessage("Share functionality available on iOS")
+        #else
+        showMessage("Share functionality not available on this platform", type: .error)
         #endif
     }
 

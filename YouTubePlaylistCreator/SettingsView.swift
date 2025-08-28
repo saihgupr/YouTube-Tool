@@ -10,6 +10,18 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var config: Config
+    @State private var showApiKey = false
+
+    // Dismiss action for older Mac Catalyst versions
+    var dismissAction: (() -> Void)?
+
+    // Get app version from bundle
+    private var appVersion: String {
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            return "v\(version)"
+        }
+        return "v1.0" // Fallback
+    }
 
     var body: some View {
         ZStack {
@@ -18,53 +30,26 @@ struct SettingsView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-        
+
+                // Header with Done button (only show if dismiss action is available)
+                if dismissAction != nil {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            dismissAction?()
+                        }) {
+                            Text("Done")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(Color(hex: "#007AFF"))
+                        }
+                        .padding(.trailing, 16)
+                        .padding(.top, 16)
+                    }
+                }
 
                 // Main content
                 VStack(spacing: 20) {
-                    // Video Settings Section - Moved to top
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Video Settings")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.white)
-
-                        VStack(spacing: 16) {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Maximum Videos")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(Color(hex: "#8E8E93"))
-
-                                HStack {
-                                    Text("\(config.maxVideosLimit)")
-                                        .font(.system(.body, design: .monospaced))
-                                        .foregroundColor(.white)
-                                        .frame(minWidth: 40, alignment: .leading)
-                                    Spacer()
-                                    Stepper("", value: $config.maxVideosLimit, in: 10...100, step: 5)
-                                }
-                                .padding(16)
-                                .background(Color(hex: "#2C2C2E"))
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                )
-
-                                Text("Number of videos to fetch (10-100)")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(Color(hex: "#8E8E93"))
-                            }
-                        }
-                    }
-                    .padding(20)
-                    .background(Color(hex: "#1C1C1E"))
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    )
-
-                    // YouTube API Section - Moved below video settings
+                    // YouTube API Section - At top
                     VStack(alignment: .leading, spacing: 16) {
                         Text("YouTube API")
                             .font(.system(size: 17, weight: .semibold))
@@ -76,31 +61,50 @@ struct SettingsView: View {
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(Color(hex: "#8E8E93"))
 
-                                ZStack(alignment: .leading) {
-                                    if config.apiKey.isEmpty {
-                                        Text("AIzaSyBxgo…")
-                                            .foregroundColor(Color(hex: "#8E8E93"))
+                                ZStack(alignment: .trailing) {
+
+                                    if showApiKey {
+                                        TextField("", text: $config.apiKey)
+                                            .textFieldStyle(PlainTextFieldStyle())
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 16)
+                                            .padding(.trailing, 50) // Space for the button
+                                            .foregroundColor(.white)
+                                            .disableAutocorrection(true)
+                                            .autocapitalization(.none)
+                                    } else {
+                                        SecureField("", text: $config.apiKey)
+                                            .textFieldStyle(PlainTextFieldStyle())
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 16)
+                                            .padding(.trailing, 50) // Space for the button
+                                            .foregroundColor(.white)
+                                            .disableAutocorrection(true)
+                                            .textContentType(.password)
+                                            .autocapitalization(.none)
                                     }
-                                    SecureField("", text: $config.apiKey)
-                                        .textFieldStyle(PlainTextFieldStyle())
-                                        .padding(16)
-                                        .background(Color(hex: "#1C1C1E"))
-                                        .cornerRadius(12)
-                                        .foregroundColor(.white)
-                                        .disableAutocorrection(true)
-                                        .textContentType(.password)
-                                        .autocapitalization(.none)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                        )
+
+                                    // Eye button
+                                    Button(action: {
+                                        showApiKey.toggle()
+                                    }) {
+                                        Image(systemName: showApiKey ? "eye" : "eye.slash")
+                                            .foregroundColor(Color(hex: "#8E8E93"))
+                                            .padding(.trailing, 16)
+                                    }
                                 }
+                                .background(Color(hex: "#1C1C1E"))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                )
                             }
                         }
                     }
-                    .padding(20)
+                    .padding(.vertical, 20)
+                    .padding(.horizontal, 16)
+                    .frame(maxWidth: .infinity)
                     .background(Color(hex: "#1C1C1E"))
                     .cornerRadius(16)
                     .overlay(
@@ -108,23 +112,23 @@ struct SettingsView: View {
                             .stroke(Color.white.opacity(0.1), lineWidth: 1)
                     )
 
+
+
                     Spacer()
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
                 .padding(.top, 20)
 
                 // Version info at bottom
                 VStack(spacing: 8) {
-                    Divider()
-                        .background(Color.white.opacity(0.1))
-                    Text("v1.0")
+                    Text(appVersion)
                         .font(.system(size: 13))
                         .foregroundColor(Color(hex: "#8E8E93"))
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
                 .padding(.bottom, 16)
             }
-            .frame(width: 450, height: 400)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Settings")
         }
     }
