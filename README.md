@@ -2,9 +2,6 @@
 
 A native iOS/macOS app for extracting YouTube video IDs from channels and creating custom playlists with advanced filtering options.
 
-![YouTube Playlist Creator](https://img.shields.io/badge/Platform-iOS%20%2F%20macOS-blue)
-![Swift](https://img.shields.io/badge/Swift-5.0-orange)
-
 ## Features
 
 - **Channel Discovery**: Search by channel name or use channel IDs
