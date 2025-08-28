@@ -1,4 +1,4 @@
-# <img src="https://i.imgur.com/ceUFUjO.png" alt="YouTube Playlist Creator Icon" width="3%" height="3%"> YouTube Playlist Creator
+# <img src="https://i.imgur.com/ceUFUjO.png" alt="YouTube Playlist Creator Icon" width="4%" height="4%"> YouTube Playlist Creator
 
 A native iOS/macOS app for extracting YouTube video IDs from channels and creating custom playlists with advanced filtering options.
 
@@ -8,6 +8,9 @@ A native iOS/macOS app for extracting YouTube video IDs from channels and creati
   <img src="https://i.imgur.com/4hWS7G3.png" width="300" alt="Video Results">
   <img src="https://i.imgur.com/CpTwoZs.png" width="300" alt="Dropdown Menu">
   <img src="https://i.imgur.com/qB0iHOA.png" width="300" alt="Mac Catalyst">
+</div>
+
+<div align="center">
   <img src="https://i.imgur.com/TrUcBqT.png" width="300" alt="Main Interface">
   <img src="https://i.imgur.com/dVGvs5t.png" width="300" alt="Settings View">
 </div>
