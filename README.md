@@ -1,38 +1,38 @@
 # YouTube Playlist Creator
 
-🎵 A modern, native iOS/macOS application for creating YouTube playlists from channel videos. Extract video IDs from any YouTube channel and generate playlists with customizable filtering options.
+A modern, native iOS/macOS application for creating YouTube playlists from channel videos. Extract video IDs from any YouTube channel and generate playlists with customizable filtering options.
 
 ![YouTube Playlist Creator](https://img.shields.io/badge/Platform-iOS%20%2F%20macOS-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange)
 ![YouTube Data API](https://img.shields.io/badge/YouTube%20Data%20API-v3-red)
 
-## ✨ Features
+## Features
 
-### 🔍 Smart Channel Discovery
+### Smart Channel Discovery
 - **Channel Search**: Find YouTube channels by name
 - **Direct Channel ID**: Input channel IDs directly
 - **Real-time Validation**: Instant feedback on channel availability
 
-### 🎵 Advanced Video Filtering
+### Advanced Video Filtering
 - **Sort Options**: Date, Duration, Year, Random, Default
 - **Content Types**: Include/exclude YouTube Shorts
 - **Keyword Filtering**: Filter by title or description keywords
 - **Duration Limits**: Set minimum video duration
 - **Video Count**: Configurable limit (10-100 videos)
 
-### 🎨 Beautiful Dark UI
+### Beautiful Dark UI
 - **Glassmorphism Design**: Modern translucent effects
 - **Dark Theme**: Easy on the eyes with consistent styling
 - **Responsive Layout**: Optimized for iOS and macOS
 - **Intuitive Navigation**: Clean, user-friendly interface
 
-### 📱 Native Performance
+### Native Performance
 - **SwiftUI**: Modern declarative UI framework
 - **Native Controls**: Platform-optimized components
 - **Smooth Animations**: Fluid transitions and interactions
 - **Background Processing**: Non-blocking API calls
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 - **macOS**: 11.0+ or **iOS**: 14.6+
@@ -58,7 +58,7 @@
    - Select your target device/simulator
    - Press `Cmd + R` to build and run
 
-## 🔑 YouTube API Setup
+## YouTube API Setup
 
 ### Step 1: Create a Google Cloud Project
 
@@ -97,7 +97,7 @@ To increase your quota:
 2. Find **"YouTube Data API v3"**
 3. Request a quota increase if needed
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Basic Workflow
 
@@ -140,7 +140,7 @@ To increase your quota:
 - **Keyword Matching**: Case-insensitive search in titles/descriptions
 - **Duration Filtering**: Exclude videos shorter than specified time
 
-## 🏗️ Architecture
+## Architecture
 
 ### Tech Stack
 - **Frontend**: SwiftUI (iOS 14.6+, macOS 11.0+)
@@ -173,7 +173,7 @@ YouTubePlaylistCreator/
 - Persistent storage using @AppStorage
 - Environment object for global access
 
-## 🔧 Development
+## Development
 
 ### Requirements
 - **Xcode**: 13.0+
@@ -208,7 +208,7 @@ YouTubePlaylistCreator/
 - **SwiftFormat**: For automatic code formatting
 - **Documentation**: All public APIs should be documented
 
-## 📊 API Usage & Limits
+## API Usage & Limits
 
 ### YouTube Data API v3 Quotas
 - **Search Request**: 100 units
@@ -226,7 +226,7 @@ For typical usage (fetching 50 videos from 1 channel):
 - **Per API Key**: Subject to Google Cloud quotas
 - **Caching**: Implement local caching to reduce API calls
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -251,11 +251,11 @@ Enable debug logging in Xcode:
 2. Select **Run** > **Arguments** tab
 3. Add `-com.apple.CoreData.ConcurrencyDebug 1` to environment variables
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -272,7 +272,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Update documentation as needed
 - Test on both iOS and macOS targets
 
-## 📞 Support
+## Support
 
 If you encounter any issues or have questions:
 
@@ -280,7 +280,7 @@ If you encounter any issues or have questions:
 2. Create a new issue with detailed information
 3. Include your device/OS version and steps to reproduce
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **YouTube Data API v3** for providing the backend functionality
 - **Google Cloud Platform** for hosting the API
@@ -289,6 +289,6 @@ If you encounter any issues or have questions:
 
 ---
 
-**Made with ❤️ for YouTube creators and viewers**
+**Made with love for YouTube creators and viewers**
 
 *Extract video IDs, create playlists, and enhance your YouTube experience with this powerful native app.*
