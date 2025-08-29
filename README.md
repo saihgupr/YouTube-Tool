@@ -102,39 +102,20 @@ These permissions are automatically granted when you enable the YouTube Data API
 
 ## Installation
 
+Start here: [Releases](https://github.com/saihgupr/YouTubePlaylistCreator/releases)
+
+### Option 1: Download from Releases
+- iOS: Download the `.ipa` from Releases and sideload with AltStore, SideStore, or Xcode.
+- macOS: Download the `.app` (or `.dmg`) from Releases and drag to Applications.
+
+### Option 2: Build from Source
 ```bash
 git clone https://github.com/saihgupr/YouTubePlaylistCreator.git
 cd YouTubePlaylistCreator
 open YouTubePlaylistCreator.xcodeproj
 ```
 
-Build and run in Xcode (requires API key in Settings).
-
-## Troubleshooting
-
-**"Please check your API key - it might be incorrect or expired"**
-- Verify API key is correct and YouTube Data API v3 is enabled
-- Check that billing is set up for your Google Cloud project
-- Ensure API key has proper restrictions configured
-
-**"YouTube API quota exceeded - try again later"**
-- You've reached the daily quota limit (10,000 units)
-- Wait until tomorrow or upgrade to a paid plan
-- Check your API usage in Google Cloud Console
-
-**"Unable to find channel - please check the channel name"**
-- Double-check spelling or try using channel ID instead
-- Ensure the channel exists and is public
-- Try searching for the channel on YouTube first
-
-**"No Videos Found"**
-- Check internet connection and API quotas
-- Verify the channel has uploaded videos
-- Try different search terms or channel ID
-
-**"Could not find uploads playlist"**
-- The channel may be private or have no public videos
-- Try a different channel or check channel permissions
+Then build and run in Xcode. You’ll need to add your API key in the app’s Settings.
 
 ## Tech Stack
 
