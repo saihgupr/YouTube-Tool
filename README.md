@@ -4,15 +4,18 @@ A native iOS/macOS app for extracting YouTube video IDs from channels and creati
 
 ## Screenshots
 
+### iPhone
 <div align="center">
-  <img src="https://i.imgur.com/4hWS7G3.png" width="250" alt="Video Results">
-  <img src="https://i.imgur.com/CpTwoZs.png" width="250" alt="Dropdown Menu">
+  <img src="https://i.imgur.com/JPxpDNE.png" width="250" alt="Video Results">
+  <img src="https://i.imgur.com/WGeepze.png" width="250" alt="Dropdown Menu">
   <img src="https://i.imgur.com/pf8qKBG.jpeg" width="250" alt="Mac Catalyst">
+  <img src="https://i.imgur.com/nPeSVAa.jpeg" width="250" alt="Mac Catalyst">
 </div>
 
+### iPad & Mac
 <div align="center">
-  <img src="https://i.imgur.com/TrUcBqT.png" width="400" alt="Main Interface">
-  <img src="https://i.imgur.com/JkcPULJ.png" width="400" alt="Settings View">
+  <img src="https://i.imgur.com/QKqtt7w.png" width="400" alt="Main Interface">
+  <img src="https://i.imgur.com/J0jobat.jpeg" width="400" alt="Settings View">
 </div>
 
 ## Features
