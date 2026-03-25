@@ -1,0 +1,290 @@
+//  ContentView.swift
+//  YouTubePlaylistCreator
+//
+//  Main view replicating the web app functionality
+//
+
+import SwiftUI
+
+// Hex color extension for custom colors
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
+struct ContentView: View {
+    @EnvironmentObject private var config: Config
+    @StateObject private var viewModel = YouTubeViewModel(config: Config())
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Settings button at top
+                    HStack {
+                        Spacer()
+                        NavigationLink(destination: SettingsView()) {
+                            Image(systemName: "gear")
+                                .font(.system(size: 18))
+                                .foregroundColor(.primary)
+                                .padding(8)
+                                .background(Color.secondary.opacity(0.1))
+                                .cornerRadius(6)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // Message Area
+                    if let message = viewModel.message, !config.apiKey.isEmpty {
+                        MessageView(message: message, type: viewModel.messageType)
+                    }
+                    if config.apiKey.isEmpty && viewModel.message == nil {
+                        MessageView(message: "Please add your YouTube API key in Settings to get started.", type: .info)
+                    }
+
+                    // Channel Search Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Channel Search")
+                            .font(.headline)
+
+                        HStack {
+                            TextField("Enter YouTube Channel Name", text: $viewModel.channelName)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .disableAutocorrection(true)
+                                .disabled(viewModel.isLoading)
+
+                            Button(action: {
+                                Task {
+                                    await viewModel.searchChannel()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "magnifyingglass")
+                                    Text("Search")
+                                }
+                                .frame(minWidth: 100)
+                            }
+                            .modifier(ButtonStyleModifier())
+                            .disabled(viewModel.channelName.isEmpty || viewModel.isLoading)
+                        }
+
+                        HStack {
+                            Text("Channel ID:")
+                                .font(.subheadline)
+                                .frame(width: 80, alignment: .leading)
+
+                            TextField("Enter the YouTube Channel ID", text: $viewModel.channelId)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .disableAutocorrection(true)
+                                .disabled(viewModel.isLoading)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    Divider()
+
+                    // Video Settings Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Video Settings")
+                            .font(.headline)
+
+                        // Order Picker
+                        HStack {
+                            Text("Order:")
+                                .font(.subheadline)
+                                .frame(width: 80, alignment: .leading)
+
+                            Picker("Order", selection: $viewModel.selectedOrder) {
+                                ForEach(VideoOrder.allCases, id: \.self) { order in
+                                    Text(order.displayName).tag(order)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .disabled(viewModel.isLoading)
+                        }
+
+                        // Keyword Filter
+                        HStack {
+                            Text("Keyword:")
+                                .font(.subheadline)
+                                .frame(width: 80, alignment: .leading)
+
+                            TextField("Filter by keyword in title/description", text: $viewModel.keywordFilter)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .disableAutocorrection(true)
+                                .disabled(viewModel.isLoading)
+                        }
+
+                        // Minimum Duration
+                        HStack {
+                            Text("Min Duration:")
+                                .font(.subheadline)
+                                .frame(width: 80, alignment: .leading)
+
+                            TextField("e.g., 5 for 5 minutes", text: $viewModel.minDurationText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .keyboardType(.decimalPad)
+                                .disableAutocorrection(true)
+                                .disabled(viewModel.isLoading)
+                        }
+
+                        // YouTube Shorts Toggle
+                        Toggle("Include YouTube Shorts", isOn: $viewModel.includeShorts)
+                            .disabled(viewModel.isLoading)
+                    }
+                    .padding(.horizontal)
+
+                    // Action Buttons
+                    VStack(spacing: 12) {
+                        Button(action: {
+                            Task {
+                                await viewModel.fetchVideos()
+                            }
+                        }) {
+                            HStack {
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                } else {
+                                    Image(systemName: "play.circle")
+                                }
+                                Text(viewModel.isLoading ? "Fetching Videos..." : "Get Video IDs")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(viewModel.canFetchVideos ? Color.accentColor : Color.gray.opacity(0.3))
+                            .foregroundColor(viewModel.canFetchVideos ? .white : .secondary)
+                            .cornerRadius(8)
+                        }
+                        .disabled(!viewModel.canFetchVideos || viewModel.isLoading)
+
+                        // Export Buttons - Only show when videos are available
+                        if !viewModel.videoIds.isEmpty {
+                            Button(action: {
+                                viewModel.openInYouTubeApp()
+                            }) {
+                                HStack {
+                                    Image(systemName: "play.tv")
+                                    Text("Open in YouTube")
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.secondary.opacity(0.1))
+                                .foregroundColor(.primary)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                                )
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // Video IDs Display
+                    if !viewModel.videoIds.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Video IDs (\(viewModel.videoIds.count) videos):")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+
+                            ScrollView(.horizontal, showsIndicators: true) {
+                                Text(viewModel.videoIds.joined(separator: ","))
+                                    .font(.system(.body, design: .monospaced))
+                                    .padding(8)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .background(Color.secondary.opacity(0.05))
+                            .cornerRadius(6)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+                            )
+                            .frame(height: 60)
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.bottom)
+            }
+            .navigationTitle("▶️ Youtube Playlist Creator")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .navigationViewStyle(.stack)
+    }
+}
+
+struct MessageView: View {
+    let message: String
+    let type: MessageType
+
+    var body: some View {
+        let backgroundColor = switch type {
+            case .success: Color.green.opacity(0.1)
+            case .error: Color.red.opacity(0.1)
+            case .info: Color.blue.opacity(0.1)
+        }
+
+        let foregroundColor = switch type {
+            case .success: Color(.systemGreen)
+            case .error: Color(.systemRed)
+            case .info: Color(.systemBlue)
+        }
+
+        let strokeColor = switch type {
+            case .success: Color.green.opacity(0.2)
+            case .error: Color.red.opacity(0.2)
+            case .info: Color.blue.opacity(0.2)
+        }
+
+        return Text(message)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(backgroundColor)
+            .foregroundColor(foregroundColor)
+            .cornerRadius(6)
+            .padding(.horizontal)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(strokeColor, lineWidth: 1)
+            )
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
+}
+
+struct ButtonStyleModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 15.0, *) {
+            content.buttonStyle(.borderedProminent)
+        } else {
+            content.buttonStyle(DefaultButtonStyle())
+        }
+    }
+}

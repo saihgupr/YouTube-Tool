@@ -1,0 +1,8 @@
+# [YouTube-Tool] - GitIgnore
+.DS_Store
+build/
+build_test/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/
+.git-backup-*

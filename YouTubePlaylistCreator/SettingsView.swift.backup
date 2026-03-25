@@ -1,0 +1,85 @@
+//
+//  SettingsView.swift
+//  YouTubePlaylistCreator
+//
+//  Settings view for Mac Catalyst
+//
+
+import SwiftUI
+
+struct SettingsView: View {
+    @EnvironmentObject private var config: Config
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Form {
+                Section(header: Text("YouTube API")) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("API Key")
+                            .font(.subheadline)
+                        ZStack(alignment: .leading) {
+                            if config.apiKey.isEmpty {
+                                Text("AIzaSyBxgo…")
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 8)
+                            }
+                            SecureField("", text: $config.apiKey)
+                                .textFieldStyle(.roundedBorder)
+                                .disableAutocorrection(true)
+                                .textContentType(.password)
+                                .autocapitalization(.none)
+                        }
+                    }
+                }
+
+                Section(header: Text("Video Settings")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Maximum Videos")
+                            .font(.subheadline)
+                        HStack {
+                            Text("\(config.maxVideosLimit)")
+                                .font(.system(.body, design: .monospaced))
+                                .frame(minWidth: 40, alignment: .leading)
+                            Spacer()
+                            Stepper("", value: $config.maxVideosLimit, in: 10...100, step: 5)
+                        }
+                        Text("Number of videos to fetch (10-100)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .modifier(FormStyleModifier())
+
+            Spacer()
+
+            // Version info at bottom
+            VStack(spacing: 4) {
+                Divider()
+                Text("v1.0")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+        }
+        .frame(width: 450, height: 300)
+        .navigationTitle("Settings")
+    }
+}
+
+struct SettingsView_Previews: PreviewProvider {
+    static var previews: some View {
+        SettingsView()
+    }
+}
+
+struct FormStyleModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 16.0, *) {
+            content.formStyle(.grouped)
+        } else {
+            content
+        }
+    }
+}
